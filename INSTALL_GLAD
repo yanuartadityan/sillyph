@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+GENERATOR="Unix Makefiles"
+mkdir external/glad/build
+cd external/glad/build
+cmake .. -G "$GENERATOR"
+make -j12
+cp -R include/* ../../../sph
+cp src/glad.c ../../../sph/glad/glad.c
+cd ../../../
