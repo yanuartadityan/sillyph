@@ -1,5 +1,6 @@
 #include "sph_particle.h"
 
+#include <glm/gtx/norm.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <iomanip>
 #include <iostream>
@@ -26,15 +27,19 @@ sph::SPHSystem::~SPHSystem() { std::cout << "Deconstructing..." << std::endl; }
 
 void sph::SPHSystem::init() {
   std::cout << "Inside init..." << std::endl;
-  this->particles.reserve(this->init_particles);
-  static const float lim_eps = common::eps;
-  static const float lim_vh = common::VIEW_HEIGHT;
-  static const float lim_vw = common::VIEW_WIDTH;
-  static const float lim_radius = common::h;
-  for (auto y = lim_eps; y < lim_vh - lim_eps * 2.f; y += lim_radius) {
-    for (auto x = lim_vw / 4; x <= lim_vw / 2; x += lim_radius) {
+  for (auto y = common::eps; y <= common::VIEW_HEIGHT - common::eps * 2.f;
+       y += common::h) {
+    for (auto x = common::VIEW_WIDTH / 4; x < common::VIEW_WIDTH;
+         x += common::h) {
       if (this->particles.size() < this->init_particles) {
-        this->particles.push_back(Particle(x, y));
+        Particle temp;
+        float jitter =
+            static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        temp.position = {x + jitter, y + jitter};
+        temp.velocity = {0.f, 0.f};
+        temp.color = {0.5, 1, 0};
+        temp.force = {0.f, 0.f};
+        this->particles.push_back(temp);
       }
     }
   }
@@ -43,7 +48,7 @@ void sph::SPHSystem::init() {
 }
 
 void sph::SPHSystem::compute_dense() {
-  for (auto &i : this->particles) {
+  for (sph::Particle &i : this->particles) {
     i.dense = 0.f;
     for (auto &n : this->particles) {
       float dist = glm::length(glm::distance(n.position, i.position));
@@ -57,10 +62,11 @@ void sph::SPHSystem::compute_dense() {
 }
 
 void sph::SPHSystem::compute_force() {
-  for (auto &i : this->particles) {
+  for (sph::Particle &i : this->particles) {
     glm::vec2 f_press(0.f, 0.f);
     glm::vec2 f_visco(0.f, 0.f);
-    for (auto &n : this->particles) {
+    for (sph::Particle &n : this->particles) {
+      // If compared particles are actually same object, skip.
       if (&i == &n) {
         continue;
       }
@@ -68,8 +74,8 @@ void sph::SPHSystem::compute_force() {
       float dist = glm::length(delta_pos);
       if (dist < common::h) {
         // Compute pressure force contribution.
-        f_press += glm::normalize(delta_pos) * common::p_mass *
-                   (i.pressure + n.pressure) * (2.f * n.dense) *
+        f_press += -glm::normalize(delta_pos) * common::p_mass *
+                   (i.pressure + n.pressure) / (2.f * n.dense) *
                    common::spiky_grad * glm::pow(common::h - dist, 3.f);
         // Compute viscosity force contribution.
         f_visco += common::p_visc * common::p_mass * (n.velocity - i.velocity) /
@@ -108,7 +114,7 @@ void sph::SPHSystem::integrate() {
 }
 
 void sph::SPHSystem::compute() {
-  // this->compute_dense();
-  // this->compute_force();
-  // this->integrate();
+  this->compute_dense();
+  this->compute_force();
+  this->integrate();
 }

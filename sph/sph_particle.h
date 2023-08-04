@@ -9,22 +9,11 @@
 
 namespace sph {
 struct Particle {
-  // Struct constructor.
-  Particle(float x, float y)
-      : position(glm::vec2(x, y)), velocity(glm::vec2(0.f, 0.f)),
-        force(glm::vec2(0.f, 0.f)), dense(0.f), pressure(0.f){};
-  Particle(glm::vec2 pos)
-      : position(pos), velocity(glm::vec2(0.f, 0.f)),
-        force(glm::vec2(0.f, 0.f)), dense(0.f), pressure(0.f){};
-  // Overload operators.
-  bool operator==(const Particle &x) const {
-    return glm::length(glm::distance(position, x.position)) < common::EPSILON;
-  }
   // Properties.
   glm::vec2 position;
   glm::vec2 velocity;
   glm::vec2 force;
-  float r, g, b;
+  glm::vec3 color;
   float dense;
   float pressure;
 };

@@ -1,6 +1,4 @@
 #include <chrono>
-#include <glm/gtx/string_cast.hpp>
-#include <glm/vec2.hpp>
 #include <iostream>
 
 #include "sph/app.h"
@@ -14,10 +12,8 @@ using namespace app;
 int main() {
   auto start = chrono::high_resolution_clock::now();
 
-  cout << sizeof(Particle) << endl;
-
   SPHSystem simulation = SPHSystem();
-  App app = App(1280, 1024);
+  App app = App(common::WINDOW_WIDTH, common::WINDOW_HEIGHT);
   app.render_simulation(simulation);
 
   auto stop = chrono::high_resolution_clock::now();
